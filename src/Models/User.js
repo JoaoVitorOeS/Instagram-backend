@@ -16,6 +16,10 @@ const Schema = new mongoose.Schema({
     description: {
         type: String
     },
+    avatar: {
+        type: String,
+        required: true
+    },
     site: {
         type: String
     }
