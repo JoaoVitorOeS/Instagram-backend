@@ -20,7 +20,7 @@ module.exports = {
 
             await likedPosts.save()
 
-            return res.status(200).send({
+            return res.status(400).send({
                 message: 'Post liked',
                 likedPosts
             }

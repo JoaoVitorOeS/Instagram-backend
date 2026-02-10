@@ -1,5 +1,4 @@
 const Post = require('../Models/Post')
-const { post } = require('../Utils/router')
 
 module.exports = {
     async createPost(req,res) {
@@ -43,53 +42,65 @@ module.exports = {
 
     },
 
-    async deletePost(req,res) {
+    async deletePost(req, res) {
         const { post_id } = req.params
         const { user_id } = req.headers
 
         try {
-            const belonsToUser = await Post.findOne({ user: user_id }).where({ _id: post_id })
-            if (!belonsToUser) return res.status(400).send('Operations not allowed')        
+            if (!post_id || !user_id) {
+                return res.status(400).send({ message: 'Missing data' })
+            }
 
-            const postExists = await Post.findById(post_id)
-            if (!postExists) return res.status(400).send('Post does not exist')
+            const post = await Post.findById(post_id)
 
-            const deletedPost = await Post.findByIdAndDelete(post_id)
+            if (!post) {
+                return res.status(404).send({ message: 'Post does not exist' })
+            }
+
+            if (!post.user.equals(user_id)) {
+                return res.status(403).send({ message: 'Operation not allowed' })
+            }
+
+            await post.deleteOne()
 
             return res.status(200).send({
-                message: 'Deleted Successfully',
-                data: deletedPost
+                message: 'Deleted Successfully'
             })
-        } catch(err) {
-            return res.status(400).send({
-                message: 'Error for delete'
+
+        } catch (err) {
+            console.error(err)
+            return res.status(500).send({
+                message: 'Error deleting post'
             })
         }
     },
 
-    async editPost(req,res) {
-        const { post_id } =  req.params
+    async editPost(req, res) {
+        const { post_id } = req.params
         const { description } = req.body
         const { user_id } = req.headers
 
         try {
-            
-            const belongsToUser = await Post.findOne({ user: user_id }).where({ _id: post_id })
-            if (!belongsToUser) return res.status(400).send('')
+            const post = await Post.findById(post_id)
 
-            const postExists = await post.findById(post_id)
-            if (!postExists) return res.status(400).send('Post does not exist')
-                
-            const editPost = await Post.findByIdAndUpdate(post_id, {
-                description 
-            })
+            if (!post) {
+                return res.status(404).send({ message: 'Post does not exist' })
+            }
+
+            if (String(post.user) !== user_id) {
+                return res.status(403).send({ message: 'Operation not allowed' })
+            }
+
+            post.description = description
+            await post.save()
 
             return res.status(200).send({
                 message: 'Updated Successfully',
-                data: editPost})
-        } catch(err) {
-            return res.status(400).send(err)
-        }
+                data: post
+            })
 
+        } catch (err) {
+            return res.status(500).send(err)
+        }
     }
 }
