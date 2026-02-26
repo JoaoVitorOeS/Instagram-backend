@@ -28,6 +28,9 @@ module.exports = {
         
         try {
             const allPost = await Post.find()
+                .populate('user')
+                .populate('likes')
+                .lean()
 
             return res.status(200).send({
                 message: 'All Posts',
