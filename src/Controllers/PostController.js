@@ -1,4 +1,5 @@
 const Post = require('../Models/Post')
+const User = require('../Models/User')
 
 module.exports = {
     async createPost(req,res) {
@@ -7,10 +8,16 @@ module.exports = {
         const { user } = req.headers
 
         try {
+            const userExists = await User.findById(user)
+
+            if (!userExists) {
+                return res.status(400).send({ message: "User does not exist" })
+            }
+
             const newPost = await Post.create({
                 picture,
                 description,
-                user
+                user: userExists._id
             })
 
             return res.status(200).send({
@@ -27,10 +34,8 @@ module.exports = {
     async listAllPosts(req,res) {
         
         try {
-            const allPost = await Post.find()
-                .populate('user')
-                .populate('likes')
-                .lean()
+            const allPost = await Post.find().populate('user')
+    
 
             return res.status(200).send({
                 message: 'All Posts',
