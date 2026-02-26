@@ -10,7 +10,7 @@ const app = express()
 mongoose.connect(mongoConnection)
     .then(() => console.log('✅ Conectado ao MongoDB'))
     .catch(err => console.error('❌ Erro ao conectar ao MongoDB:', err.message))
-
+    
 app.use(cors())
 app.use(express.json());
 app.use(router)
